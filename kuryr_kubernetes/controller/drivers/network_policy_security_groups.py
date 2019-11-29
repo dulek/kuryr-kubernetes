@@ -68,8 +68,25 @@ def _get_crd_rule(crd_rules, container_port):
     """
     for crd_rule in crd_rules:
         remote_ip_prefixes = crd_rule.get('remote_ip_prefixes')
-        min_port = crd_rule['security_group_rule'].get('port_range_min')
-        max_port = crd_rule['security_group_rule'].get('port_range_max')
+        # TODO(gryf): In the future, we will move from neutron
+        # style security_group_rule payload into more generic, simple dict.
+        # So instead of:
+        #   {'security_group_rule': {'port_range_min': 1,
+        #                            'port_range_max': 1,
+        #                            'remote_ip_prefixes': '',
+        #                            ...}}
+        # we will have:
+        #   {'port_range_min': 1,
+        #    'port_range_max': 1,
+        #    'remote_ip_prefixes': '',
+        #    ...}
+        #
+        # as a rule entity. Currently both formats are supported. In the
+        # future we will remove support of the nested, neutron one.
+        min_port = crd_rule.get('security_group_rule',
+                                crd_rule).get('port_range_min')
+        max_port = crd_rule.get('security_group_rule',
+                                crd_rule).get('port_range_max')
         if (remote_ip_prefixes and (
                 min_port >= container_port and
                 container_port <= max_port)):

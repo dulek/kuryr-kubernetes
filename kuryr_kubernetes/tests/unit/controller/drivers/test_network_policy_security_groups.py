@@ -69,7 +69,7 @@ def get_sg_rule():
         "security_group_rule": {
             "description": "Kuryr-Kubernetes NetPolicy SG rule",
             "direction": "ingress",
-            "ethertype": "IPv4",
+            "ether_type": "IPv4",
             "id": 'f15ff50a-e8a4-4872-81bf-a04cbb8cb388',
             "port_range_max": 6379,
             "port_range_min": 6379,
@@ -162,7 +162,7 @@ class TestNetworkPolicySecurityGroupsDriver(test_base.TestCase):
                     {'security_group_rule':
                      {'description': 'Kuryr-Kubernetes NetPolicy SG rule',
                       'direction': 'egress',
-                      'ethertype': 'IPv4',
+                      'ether_type': 'IPv4',
                       'port_range_max': 5978,
                       'port_range_min': 5978,
                       'protocol': 'tcp',
@@ -173,7 +173,7 @@ class TestNetworkPolicySecurityGroupsDriver(test_base.TestCase):
                     {'security_group_rule':
                      {'description': 'Kuryr-Kubernetes NetPolicy SG rule',
                       'direction': 'ingress',
-                      'ethertype': 'IPv4',
+                      'ether_type': 'IPv4',
                       'port_range_max': 6379,
                       'port_range_min': 6379,
                       'protocol': 'tcp',
@@ -201,7 +201,7 @@ class TestNetworkPolicySecurityGroupsDriver(test_base.TestCase):
                     {'security_group_rule':
                      {'description': 'Kuryr-Kubernetes NetPolicy SG rule',
                       'direction': 'ingress',
-                      'ethertype': 'IPv4',
+                      'ether_type': 'IPv4',
                       'port_range_max': 8080,
                       'port_range_min': 8080,
                       'protocol': 'tcp',
@@ -308,7 +308,7 @@ class TestNetworkPolicySecurityGroupsDriver(test_base.TestCase):
                 'direction': 'ingress',
                 'protocol': 'tcp',
                 'description': 'Kuryr-Kubernetes NetPolicy SG rule',
-                'ethertype': 'IPv4',
+                'ether_type': 'IPv4',
                 'port_range_max': 6379,
                 'security_group_id': self._crd_sg_id,
                 'port_range_min': 6379,
@@ -326,7 +326,7 @@ class TestNetworkPolicySecurityGroupsDriver(test_base.TestCase):
                     "security_group_rule": {
                         "description": "Kuryr-Kubernetes NetPolicy SG rule",
                         "direction": "ingress",
-                        "ethertype": "IPv4",
+                        "ether_type": "IPv4",
                         "id": self._new_rule_id,
                         "port_range_max": 6379,
                         "port_range_min": 6379,
