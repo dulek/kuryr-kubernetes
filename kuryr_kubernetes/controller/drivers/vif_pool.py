@@ -836,7 +836,7 @@ class NestedVIFPool(BaseVIFPool):
     def _get_parent_port_ip(self, port_id):
         os_net = clients.get_network_client()
         parent_port = os_net.get_port(port_id)
-        return parent_port.fixed_ips[0].ip_address
+        return parent_port.fixed_ips[0]['ip_address']
 
     def sync_pools(self):
         super(NestedVIFPool, self).sync_pools()
