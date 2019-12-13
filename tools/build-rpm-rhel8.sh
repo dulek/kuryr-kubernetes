@@ -16,7 +16,7 @@ cp openshift-kuryr.tmpfs ${source_path}
 cp kuryr-cni.service ${source_path}
 
 # NOTE(dulek): We use this to get python3-pbr package in here.
-curl http://base-openstack-4-3.ocp.svc > /etc/yum.repos.d/base-openstack-4-3.repo
+curl http://base-4-3-rhel8.ocp.svc > /etc/yum.repos.d/base-4-3-rhel8.repo
 
 yum install -y python3-pbr python3-devel
 
