@@ -109,7 +109,7 @@ def _add_trunk_subports(self, trunk, subports):
     a replacement that does.
     """
     trunk = self._get_resource(os_trunk.Trunk, trunk)
-    url = os_utils.urljoin('/trunks', trunk.id, 'remove_subports')
+    url = os_utils.urljoin('/trunks', trunk.id, 'add_subports')
     response = self.put(url, json={'sub_ports': subports})
     os_exc.raise_from_response(response)
     trunk._body.attributes.update({'sub_ports': subports})
