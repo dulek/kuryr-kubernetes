@@ -585,6 +585,7 @@ class LoadBalancerHandler(k8s_base.ResourceEventHandler):
             "ingress": [{"ip": lb_ip_address.format()}]}}
         k8s = clients.get_kubernetes_client()
         svc_link = self._get_service_link(endpoints)
+        svc_link = svc_link + '/status'
         try:
             k8s.patch("status", svc_link, status_data)
         except k_exc.K8sClientException:

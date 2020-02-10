@@ -940,6 +940,7 @@ function update_tempest_conf_file {
         iniset $TEMPEST_CONFIG kuryr_kubernetes ipv6 True
     fi
     iniset $TEMPEST_CONFIG kuryr_kubernetes validate_crd True
+    iniset $TEMPEST_CONFIG kuryr_kubernetes kuryrnetworks True
 }
 
 source $DEST/kuryr-kubernetes/devstack/lib/kuryr_kubernetes
@@ -1079,6 +1080,7 @@ if [[ "$1" == "stack" && "$2" == "extra" ]]; then
 
     if is_service_enabled kuryr-kubernetes; then
         /usr/local/bin/kubectl apply -f ${KURYR_HOME}/kubernetes_crds/kuryrnet.yaml
+        /usr/local/bin/kubectl apply -f ${KURYR_HOME}/kubernetes_crds/kuryrnetwork.yaml
         /usr/local/bin/kubectl apply -f ${KURYR_HOME}/kubernetes_crds/kuryrnetpolicy.yaml
         /usr/local/bin/kubectl apply -f ${KURYR_HOME}/kubernetes_crds/kuryrloadbalancer.yaml
         if [ "$KURYR_K8S_CONTAINERIZED_DEPLOYMENT" == "True" ]; then

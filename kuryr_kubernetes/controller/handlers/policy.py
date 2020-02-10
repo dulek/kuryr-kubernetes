@@ -149,12 +149,13 @@ class NetworkPolicyHandler(k8s_base.ResourceEventHandler):
 
         kubernetes = clients.get_kubernetes_client()
         try:
-            net_crd = kubernetes.get('{}/{}'.format(
-                k_const.K8S_API_CRD_KURYRNETS, kuryrnet_name))
+            net_crd = kubernetes.get('{}/{}/kuryrnetworks/{}'.format(
+                k_const.K8S_API_CRD_NAMESPACES, policy_ns,
+                kuryrnet_name))
         except exceptions.K8sClientException:
             LOG.exception("Kubernetes Client Exception.")
             raise
-        return net_crd['spec']['netId']
+        return net_crd['status']['netId']
 
     def _is_egress_only_policy(self, policy):
         policy_types = policy['spec'].get('policyTypes', [])
