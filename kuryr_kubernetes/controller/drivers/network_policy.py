@@ -148,16 +148,11 @@ class NetworkPolicyDriver(base.NetworkPolicyDriver):
                 }}
             driver_utils.create_security_group_rule(default_rule)
 
-    def create_security_group_rules_from_network_policy(self, policy,
-                                                        project_id):
-        """Create initial security group and rules
-
-        This method creates the initial security group for hosting security
-        group rules coming out of network policies' parsing.
-        """
-        sg_name = ("sg-" + policy['metadata']['namespace'] + "-" +
-                   policy['metadata']['name'])
-        desc = "Kuryr-Kubernetes NetPolicy SG"
+    def create_security_group(self, knp, project_id):
+        sg_name = ("sg-" + knp['metadata']['namespace'] + "-" +
+                   knp['metadata']['name'])
+        desc = ("Kuryr-Kubernetes Network Policy %s SG" %
+                utils.get_unique_name(knp))
         sg = None
         try:
             # Create initial security group
@@ -173,8 +168,23 @@ class NetworkPolicyDriver(base.NetworkPolicyDriver):
             #              rules just after creation.
             for sgr in sg.security_group_rules:
                 self.os_net.delete_security_group_rule(sgr['id'])
+        except (os_exc.SDKException, exceptions.ResourceNotReady):
+            LOG.exception("Error creating security group for network policy "
+                          " %s", knp['metadata']['name'])
+            raise
 
-            i_rules, e_rules = self.parse_network_policy_rules(policy, sg.id)
+        return sg.id
+
+    def create_security_group_rules_from_network_policy(self, policy, knp):
+        """Create security group rules
+
+        This method creates the security group rules coming out of a network
+        policies' parsing.
+        """
+        try:
+            sg_id = knp['status']['securityGroupId']
+
+            i_rules, e_rules = self.parse_network_policy_rules(policy, sg_id)
             for i_rule in i_rules:
                 sgr_id = driver_utils.create_security_group_rule(i_rule)
                 i_rule['security_group_rule']['id'] = sgr_id
@@ -184,31 +194,10 @@ class NetworkPolicyDriver(base.NetworkPolicyDriver):
                 e_rule['security_group_rule']['id'] = sgr_id
 
             # Add default rules to allow traffic from host and svc subnet
-            self._add_default_np_rules(sg.id)
+            self._add_default_np_rules(sg_id)
         except (os_exc.SDKException, exceptions.ResourceNotReady):
             LOG.exception("Error creating security group for network policy "
                           " %s", policy['metadata']['name'])
-            # If there's any issue creating sg rules, remove them
-            if sg:
-                self.os_net.delete_security_group(sg.id)
-            raise
-
-        try:
-            self._add_kuryrnetpolicy_crd(policy, project_id, sg.id, i_rules,
-                                         e_rules)
-        except exceptions.K8sClientException:
-            LOG.exception("Rolling back security groups")
-            # Same with CRD creation
-            self.os_net.delete_security_group(sg.id)
-            raise
-
-        try:
-            crd = self.get_kuryrnetpolicy_crd(policy)
-            self.kubernetes.annotate(policy['metadata']['selfLink'],
-                                     {"kuryrnetpolicy_selfLink":
-                                      crd['metadata']['selfLink']})
-        except exceptions.K8sClientException:
-            LOG.exception('Error annotating network policy')
             raise
 
     def _get_pods(self, pod_selector, namespace=None,
@@ -651,9 +640,7 @@ class NetworkPolicyDriver(base.NetworkPolicyDriver):
     def release_network_policy(self, netpolicy_crd):
         if netpolicy_crd is not None:
             self.delete_np_sg(netpolicy_crd['spec']['securityGroupId'])
-            self._del_kuryrnetpolicy_crd(
-                netpolicy_crd['metadata']['name'],
-                netpolicy_crd['metadata']['namespace'])
+            self._del_kuryrnetpolicy_crd(netpolicy_crd)
 
     def get_kuryrnetpolicy_crd(self, policy):
         netpolicy_crd_name = "np-" + policy['metadata']['name']
@@ -723,20 +710,18 @@ class NetworkPolicyDriver(base.NetworkPolicyDriver):
             raise
         return netpolicy_crd
 
-    def _del_kuryrnetpolicy_crd(self, netpolicy_crd_name,
-                                netpolicy_crd_namespace):
+    def _del_kuryrnetpolicy_crd(self, netpolicy_crd):
         try:
-            LOG.debug("Deleting KuryrNetPolicy CRD %s" % netpolicy_crd_name)
-            self.kubernetes.delete('{}/{}/kuryrnetpolicies/{}'.format(
-                constants.K8S_API_CRD_NAMESPACES,
-                netpolicy_crd_namespace,
-                netpolicy_crd_name))
+            ns = netpolicy_crd['metadata']['namespace']
+            name = netpolicy_crd['metadata']['name']
+            LOG.debug("Deleting KuryrNetworkPolicy CRD %s" % name)
+            self.kubernetes.delete('{}/{}/kuryrnetworkpolicies/{}'.format(
+                constants.K8S_API_CRD_NAMESPACES, ns, name))
         except exceptions.K8sResourceNotFound:
-            LOG.debug("KuryrNetPolicy CRD Object not found: %s",
-                      netpolicy_crd_name)
+            LOG.debug("KuryrNetworkPolicy CRD Object not found: %s", name)
         except exceptions.K8sClientException:
-            LOG.exception("Kubernetes Client Exception deleting kuryrnetpolicy"
-                          " CRD.")
+            LOG.exception("Kubernetes Client Exception deleting "
+                          "KuryrNetworkPolicy CRD %s." % name)
             raise
 
     def affected_pods(self, policy, selector=None):

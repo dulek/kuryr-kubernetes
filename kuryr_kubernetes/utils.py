@@ -94,15 +94,15 @@ def convert_netns(netns):
         return netns
 
 
-def get_pod_unique_name(pod):
-    """Returns a unique name for the pod.
+def get_unique_name(obj):
+    """Returns a unique name for the K8s Object.
 
-    It returns a pod unique name for the pod composed of its name and the
-    namespace it is running on.
+    It returns a unique name for the K8s object composed of its name and the
+    namespace it is created in.
 
-    :returns: String with namespace/name of the pod
+    :returns: String with namespace/name of the object
     """
-    return "%(namespace)s/%(name)s" % pod['metadata']
+    return "%(namespace)s/%(name)s" % obj['metadata']
 
 
 def check_suitable_multi_pool_driver_opt(pool_driver, pod_driver):

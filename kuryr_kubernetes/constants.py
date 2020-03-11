@@ -20,8 +20,10 @@ K8S_API_CRD_NAMESPACES = K8S_API_CRD + '/namespaces'
 K8S_API_CRD_KURYRNETS = K8S_API_CRD + '/kuryrnets'
 K8S_API_CRD_KURYRNETWORKS = K8S_API_CRD + '/kuryrnetworks'
 K8S_API_CRD_KURYRNETPOLICIES = K8S_API_CRD + '/kuryrnetpolicies'
+K8S_API_CRD_KURYRNETWORKPOLICIES = K8S_API_CRD + '/kuryrnetworkpolicies'
 K8S_API_CRD_KURYRLOADBALANCERS = K8S_API_CRD + '/kuryrloadbalancers'
 K8S_API_POLICIES = '/apis/networking.k8s.io/v1/networkpolicies'
+K8S_API_NETWORKING = '/apis/networking.k8s.io/v1'
 
 K8S_API_NPWG_CRD = '/apis/k8s.cni.cncf.io/v1'
 
@@ -33,6 +35,7 @@ K8S_OBJ_POLICY = 'NetworkPolicy'
 K8S_OBJ_KURYRNET = 'KuryrNet'
 K8S_OBJ_KURYRNETWORK = 'KuryrNetwork'
 K8S_OBJ_KURYRNETPOLICY = 'KuryrNetPolicy'
+K8S_OBJ_KURYRNETWORKPOLICY = 'KuryrNetworkPolicy'
 K8S_OBJ_KURYRLOADBALANCER = 'KuryrLoadBalancer'
 
 K8S_POD_STATUS_PENDING = 'Pending'
@@ -59,6 +62,8 @@ K8S_ANNOTATION_CURRENT_DRIVER = 'current_driver'
 K8S_ANNOTATION_NEUTRON_PORT = 'neutron_id'
 
 KURYRNETWORK_FINALIZER = 'kuryrnetwork.finalizers.kuryr.openstack.org'
+KURYRNETWORKPOLICY_FINALIZER = ('kuryrnetworkpolicy.finalizers.kuryr.'
+                                'openstack.org')
 
 K8S_OS_VIF_NOOP_PLUGIN = "noop"
 

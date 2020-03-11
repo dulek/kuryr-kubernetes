@@ -211,7 +211,7 @@ class CNIDaemonWatcherService(cotyledon.Service):
             time.sleep(HEALTH_CHECKER_DELAY)
 
     def on_done(self, pod, vifs):
-        pod_name = utils.get_pod_unique_name(pod)
+        pod_name = utils.get_unique_name(pod)
         vif_dict = {
             ifname: vif.obj_to_primitive() for
             ifname, vif in vifs.items()
@@ -240,7 +240,7 @@ class CNIDaemonWatcherService(cotyledon.Service):
                         self.registry[pod_name] = pod_dict
 
     def on_deleted(self, pod):
-        pod_name = utils.get_pod_unique_name(pod)
+        pod_name = utils.get_unique_name(pod)
         try:
             if pod_name in self.registry:
                 # NOTE(ndesh): We need to lock here to avoid race condition

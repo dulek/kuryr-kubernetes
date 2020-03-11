@@ -80,6 +80,9 @@ class NetworkPolicyHandler(k8s_base.ResourceEventHandler):
                                                            project_id)
                 self._drv_lbaas.update_lbaas_sg(service, sgs)
 
+    def on_finalize(self, policy):
+        self._drv_policy._del_kuryrnetpolicy_crd(policy)
+
     def on_deleted(self, policy):
         LOG.debug("Deleted network policy: %s", policy)
         project_id = self._drv_project.get_project(policy)
@@ -127,7 +130,7 @@ class NetworkPolicyHandler(k8s_base.ResourceEventHandler):
                     self._drv_lbaas.update_lbaas_sg(svc, sgs)
 
     def is_ready(self, quota):
-        if not utils.has_kuryr_crd(k_const.K8S_API_CRD_KURYRNETPOLICIES):
+        if not utils.has_kuryr_crd(k_const.K8S_API_CRD_KURYRNETWORKPOLICIES):
             return False
         return self._check_quota(quota)
 

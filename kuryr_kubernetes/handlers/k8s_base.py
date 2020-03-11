@@ -68,6 +68,12 @@ class ResourceEventHandler(dispatch.EventConsumer, health.HealthHandler):
         event_type = event.get('type')
         obj = event.get('object')
         if 'MODIFIED' == event_type:
+            try:
+                if obj['metadata']['deletionTimestamp']:
+                    self.on_finalize(obj)
+                    return
+            except (KeyError, TypeError):
+                pass
             self.on_modified(obj)
             self.on_present(obj)
         elif 'ADDED' == event_type:
@@ -86,4 +92,7 @@ class ResourceEventHandler(dispatch.EventConsumer, health.HealthHandler):
         pass
 
     def on_deleted(self, obj):
+        pass
+
+    def on_finalize(self, obj):
         pass

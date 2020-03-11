@@ -12,9 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_log import log as logging
+
+from kuryr_kubernetes import clients
 from kuryr_kubernetes import constants
-from kuryr_kubernetes.controller.drivers import base as drivers
+from kuryr_kubernetes import exceptions
 from kuryr_kubernetes.handlers import k8s_base
+from kuryr_kubernetes import utils
+
+LOG = logging.getLogger(__name__)
 
 
 class KuryrNetPolicyHandler(k8s_base.ResourceEventHandler):
@@ -29,9 +35,42 @@ class KuryrNetPolicyHandler(k8s_base.ResourceEventHandler):
 
     def __init__(self):
         super(KuryrNetPolicyHandler, self).__init__()
-        self._drv_policy = drivers.NetworkPolicyDriver.get_instance()
 
-    def on_deleted(self, netpolicy_crd):
-        crd_sg = netpolicy_crd['spec'].get('securityGroupId')
-        if crd_sg:
-            self._drv_policy.delete_np_sg(crd_sg)
+    def _convert_to_kuryrnetworkpolicy(self, netpolicy):
+        # TODO(dulek): We might want this in a driver.
+        new_networkpolicy = {
+            'metadata': {
+                'namespace': netpolicy['metadata']['namespace'],
+                'name': netpolicy['metadata']['name'],
+            },
+            'spec': {
+                'podSelector': netpolicy['spec']['podSelector'],
+                'egressSgRules': netpolicy['spec']['egressSgRules'],
+                'ingressSgRules': netpolicy['spec']['ingressSgRules'],
+                # TODO(dulek): We should probably prune IDs from SG rules,
+                #              but K8s will prune them anyway, so good for now.
+            },
+            'status': {
+                'securityGroupId': netpolicy['spec']['securityGroupId'],
+                'securityGroupRules': (netpolicy['spec']['egressSgRules'] +
+                                       netpolicy['spec']['ingressSgRules']),
+            },
+        }
+
+        return new_networkpolicy
+
+    def on_present(self, netpolicy):
+        k8s = clients.get_kubernetes_client()
+        new_networkpolicy = self._convert_to_kuryrnetworkpolicy(netpolicy)
+
+        # TODO(dulek): We need to generate ports too.
+
+        try:
+            k8s.post(constants.K8S_API_CRD_KURYRNETWORKPOLICIES,
+                     new_networkpolicy)
+        except exceptions.K8sConflict:
+            LOG.warning('KuryrNetworkPolicy %s already existed when '
+                        'converting KuryrNetPolicy %s. Ignoring.',
+                        utils.get_unique_name(new_networkpolicy),
+                        utils.get_unique_name(netpolicy))
+        k8s.delete(netpolicy['metadata']['selfLink'])

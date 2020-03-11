@@ -79,6 +79,8 @@ class K8sClient(object):
     def _raise_from_response(self, response):
         if response.status_code == requests.codes.not_found:
             raise exc.K8sResourceNotFound(response.text)
+        if response.status_code == requests.codes.conflict:
+            raise exc.K8sConflict(response.text)
         if not response.ok:
             raise exc.K8sClientException(response.text)
 
