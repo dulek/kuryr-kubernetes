@@ -9,13 +9,13 @@ FROM ubi8
 ENV container=oci
 ARG OSLO_LOCK_PATH=/var/kuryr-lock
 
-# FIXME(dulek): For some reason the local repos are disabled by default and
-#               yum-config-manager is unable to enable them. Using sed for now.
-RUN sed -i -e 's/enabled \?= \?0/enabled = 1/' /etc/yum.repos.d/*
-
 COPY --from=builder /go/bin/kuryr-cni /kuryr-cni
 
-RUN dnf install -y openshift-kuryr-cni iproute openvswitch \
+# FIXME(dulek): For some reason the local repo in OKD builds is disabled,
+#               using sed to enable it. Ignoring fail as it won't work (nor
+#               it's necessary) in OCP builds.
+RUN (sed -i -e 's/enabled \?= \?0/enabled = 1/' /etc/yum.repos.d/built.repo || true) \
+ && dnf install -y openshift-kuryr-cni iproute openvswitch \
  && dnf clean all \
  && rm -rf /var/cache/yum
 
